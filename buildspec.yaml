@@ -27,8 +27,8 @@ phases:
     commands:
       - |
           aws ses send-email \
-            --from "nida26127@gmail.com" \
-            --to "nida26127@gmail.com" \
+            --from "moazamwattoo123@gmail.com" \
+            --to "moazamwattoo123@gmail.com" \
             --subject "CodeBuild Status $CODEBUILD_BUILD_ID" \
             --text "Build status $CODEBUILD_BUILD_STATUS" \
             --region "eu-north-1"
