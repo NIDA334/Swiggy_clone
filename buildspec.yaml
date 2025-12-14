@@ -30,7 +30,7 @@ phases:
       - echo "Build completed"
       - echo "Running SonarQube analysis..."
       - |
-        sonar-scanner -Dsonar.projectKey=SwiggyClone \
+        sonar-scanner -Dsonar.projectKey=Swiggy \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://54.89.147.212:9000/ \
                       -Dsonar.login=$SONAR_TOKEN
