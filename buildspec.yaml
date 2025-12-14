@@ -2,6 +2,9 @@ version: 0.2
 
 env:
   parameter-store:
+    DOCKER_REGISTRY_USERNAME: /cicd/docker-credentials/username
+    DOCKER_REGISTRY_PASSWORD: /cicd/docker-credentials/password
+    DOCKER_REGISTRY_URL: /cicd/docker-registry/url
     SONAR_TOKEN: /cicd/sonar/sonar-token
 
 phases:
@@ -13,17 +16,38 @@ phases:
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
       - unzip -q sonar-scanner.zip
       - export PATH=$PATH:$PWD/sonar-scanner-4.7.0.2747-linux/bin
+      - echo "Sonar Scanner installed. Version check:"
+      - sonar-scanner -v
+
+  pre_build:
+    commands:
+      - echo "Installing dependencies (if any)..."
 
   build:
     commands:
-      - echo "Running SonarQube Scan..."
+      - echo "Running SonarQube analysis for project Swiggy..."
       - |
         sonar-scanner \
-          -Dsonar.projectKey=swiggy-clone \
-          -Dsonar.projectName=Swiggy-Clone \
+          -Dsonar.projectKey=swiggy \
+          -Dsonar.projectName=Swiggy \
           -Dsonar.sources=. \
           -Dsonar.host.url=http://54.89.147.212:9000 \
           -Dsonar.login=$SONAR_TOKEN
+
+      - echo "Docker login (optional if building image)..."
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      # - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/swiggy:latest" .
+      # - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/swiggy:latest"
+
+  post_build:
+    commands:
+      - echo "Sending SES email notification..."
+      - |
+        aws ses send-email \
+          --from "nida6789345@gmail.com" \
+          --destination "ToAddresses=nida6789345@gmail.com" \
+          --message "Subject={Data=CodeBuild Status},Body={Text={Data=Build status: $CODEBUILD_BUILD_STATUS}}" \
+          --region us-east-1
 
 artifacts:
   files:
