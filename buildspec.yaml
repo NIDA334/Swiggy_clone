@@ -29,11 +29,11 @@ phases:
       - echo "Running tests..."
       - echo "Build completed"
       - echo "Running SonarQube analysis..."
-      - sonar-scanner \
-          -Dsonar.projectKey=SwiggyClone \
-          -Dsonar.sources=. \
-          -Dsonar.host.url=https://your-sonarqube-server \
-          -Dsonar.login=$SONAR_TOKEN
+      - |
+        sonar-scanner -Dsonar.projectKey=SwiggyClone \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=https://your-sonarqube-server \
+                      -Dsonar.login=$SONAR_TOKEN
 
   post_build:
     commands:
