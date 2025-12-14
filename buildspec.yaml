@@ -2,34 +2,28 @@ version: 0.2
 
 env:
   parameter-store:
-    DOCKER_REGISTRY_USERNAME: /cicd/docker-credentials/username
-    DOCKER_REGISTRY_PASSWORD: /cicd/docker-credentials/password
-    DOCKER_REGISTRY_URL: /cicd/docker-registry/url
     SONAR_TOKEN: /cicd/sonar/sonar-token
 
 phases:
   install:
     runtime-versions:
-      python: 3.11
       java: corretto17
-
-  pre_build:
     commands:
-      - echo "Installing dependencies..."
+      - echo "Installing Sonar Scanner..."
+      - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+      - unzip -q sonar-scanner.zip
+      - export PATH=$PATH:$PWD/sonar-scanner-4.7.0.2747-linux/bin
 
   build:
     commands:
-      - echo "Building application..."
-
-  post_build:
-    commands:
-      - echo "Sending SES email notification..."
+      - echo "Running SonarQube Scan..."
       - |
-        aws ses send-email \
-          --from "nida6789345@gmail.com" \
-          --destination "ToAddresses=nida6789345@gmail.com" \
-          --message "Subject={Data=CodeBuild Status},Body={Text={Data=Build status: $CODEBUILD_BUILD_STATUS}}" \
-          --region us-east-1
+        sonar-scanner \
+          -Dsonar.projectKey=swiggy-clone \
+          -Dsonar.projectName=Swiggy-Clone \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=http://54.89.147.212:9000 \
+          -Dsonar.login=$SONAR_TOKEN
 
 artifacts:
   files:
