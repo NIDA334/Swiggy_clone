@@ -6,6 +6,10 @@ env:
     DOCKER_REGISTRY_PASSWORD: /cicd/docker-credentials/password
     DOCKER_REGISTRY_URL: /cicd/docker-registry/url
     SONAR_TOKEN: /cicd/sonar/sonar-token
+  variables:
+    # Debugging ke liye variable add karein
+    SONAR_HOST_URL: "http://54.89.147.212:9000"
+    SONAR_PROJECT_KEY: "Swiggy"
 
 phases:
   install:
@@ -15,9 +19,10 @@ phases:
     commands:
       - echo "Installing SonarQube scanner..."
       - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-      - unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-      - export PATH=$PATH:$PWD/sonar-scanner-4.8.0.2856-linux/bin
-      - echo "Install phase completed"
+      - unzip sonar-scanner-cli-4.8.0.2856-linux.zip -d sonar-scanner
+      - export PATH=$PATH:$PWD/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin
+      - echo "PATH is: $PATH"
+      - which sonar-scanner || echo "Sonar-scanner not found in PATH"
 
   pre_build:
     commands:
@@ -29,11 +34,23 @@ phases:
       - echo "Running tests..."
       - echo "Build completed"
       - echo "Running SonarQube analysis..."
+      
+      # Debug: Check karein token sahi se aa raha hai ya nahi
+      - echo "Checking SONAR_TOKEN..."
+      - echo "Token first 5 chars: ${SONAR_TOKEN:0:5}..."
+      - echo "Token length: ${#SONAR_TOKEN}"
+      
+      # Debug: Sonar-scanner available hai ya nahi
+      - ls -la $PWD/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin/
+      
+      # Saaf tarike se SonarQube analysis run karein
       - |
-        sonar-scanner -Dsonar.projectKey=Swiggy \
-                      -Dsonar.sources=. \
-                      -Dsonar.host.url=http://54.89.147.212:9000/ \
-                      -Dsonar.login=$SONAR_TOKEN
+        $PWD/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
+          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.sourceEncoding=UTF-8
 
   post_build:
     commands:
